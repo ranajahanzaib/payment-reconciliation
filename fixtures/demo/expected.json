@@ -1,0 +1,9 @@
+{
+  "amount_mismatch": 1,
+  "duplicate_internal_credit": 1,
+  "missing_provider_charge": 1,
+  "refund_not_recorded": 1,
+  "subscription_status_mismatch": 1,
+  "unrecognized_provider_capture": 1,
+  "unsupported_paid_status": 1
+}
