@@ -30,4 +30,6 @@ jobs:
       - name: Deterministic demo and fixture verification
         run: go run ./cmd/payment-reconciliation demo -out /tmp/demo-report
       - name: Assert fixture verification report
-        run: grep -q '"passed": true' /tmp/demo-report/verification.json
+        run: >-
+          grep -q '"passed": true' /tmp/demo-report/verification.json
+
