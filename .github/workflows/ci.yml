@@ -1,33 +1,33 @@
-name: CI
+name: Go CI
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-go@v5
         with:
-          node-version: 20
-
-      # Uncomment and adjust the steps below to match your project's setup
-
-      # - name: Install dependencies
-      #   run: npm ci
-
-      # - name: Lint
-      #   run: npm run lint
-
-      # - name: Run tests
-      #   run: npm test
-
-      # - name: Build
-      #   run: npm run build
+          go-version-file: go.mod
+          cache: true
+      - name: Verify formatting
+        run: test -z "$(gofmt -l ./cmd ./internal)"
+      - name: Vet
+        run: go vet ./...
+      - name: Unit and provider contract tests
+        run: go test ./...
+      - name: Race tests
+        run: go test -race ./...
+      - name: Build
+        run: go build ./cmd/payment-reconciliation
+      - name: Deterministic demo and fixture verification
+        run: go run ./cmd/payment-reconciliation demo -out /tmp/demo-report
+      - name: Assert fixture verification report
+        run: grep -q '"passed": true' /tmp/demo-report/verification.json
