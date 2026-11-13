@@ -1,26 +1,25 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: ''
+about: Report incorrect behavior or a reproducible defect
+title: "[Bug]: "
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Summary
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. See error
+Describe what happened and what you expected to happen.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Reproduction
 
-**Environment**
-- OS: [e.g. macOS 26.4.1, Windows 11, Ubuntu 24.04.4]
-- Version: [e.g. 1.0.0]
+List the command, API request, or demo steps that reproduce the issue.
 
-**Additional context**
-Add any other context or screenshots here.
+## Environment
+
+- Operating system and version:
+- Go version:
+- Project revision:
+
+## Output
+
+Include relevant sanitized logs or error messages. Remove credentials, customer data, and payment details before posting.

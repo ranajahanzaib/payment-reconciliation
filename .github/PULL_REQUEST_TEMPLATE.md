@@ -1,10 +1,15 @@
-Fixes #<issue_number_goes_here>
+## Summary
 
-> It's a good idea to open an issue first for discussion.
+Describe the user-visible or operational change.
 
-**Description**
-A brief summary of what this PR does and why.
+## Validation
 
-- [ ] Tests pass
-- [ ] README updated if needed
-- [ ] No breaking changes (or described below)
+- [ ] `go test ./...`
+- [ ] `go test -race ./...`
+- [ ] `go vet ./...`
+- [ ] `make demo` (when reconciliation behavior changes)
+
+## Compatibility and documentation
+
+- [ ] Configuration, API, and report changes are documented.
+- [ ] Any behavior or migration impact is described above.

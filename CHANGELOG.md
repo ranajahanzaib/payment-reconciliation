@@ -1,7 +1,12 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Notable changes are recorded here. This project has not published a versioned release.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## Unreleased
 
-## [Unreleased]
+### Added
+
+- Go reconciliation engine with exact minor-unit comparisons and account-scoped matching.
+- Payment-provider simulator, paginated HTTP adapter, deterministic demo fixtures, and independent expected-results verification.
+- JSON, CSV, and HTML reports with a local findings dashboard and review audit log.
+- Unit and provider-handler tests, race-test target, and GitHub Actions checks.
