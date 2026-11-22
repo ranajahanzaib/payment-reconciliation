@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="610" viewBox="0 0 1120 610">
+<rect width="1120" height="610" rx="18" fill="#0b1220"/>
+<rect x="1" y="1" width="1118" height="608" rx="17" fill="none" stroke="#263449"/>
+<circle cx="28" cy="27" r="6" fill="#fb7185"/><circle cx="50" cy="27" r="6" fill="#fbbf24"/><circle cx="72" cy="27" r="6" fill="#4ade80"/>
+<text x="560" y="32" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="13">payment-reconciliation · genuine demo run</text>
+<text x="34" y="82" fill="#7dd3fc" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">$ go run ./cmd/payment-reconciliation demo --out /tmp/payment-reconciliation-showcase</text>
+<text x="34" y="112" fill="#f8fafc" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Payment Reconciliation</text>
+<text x="34" y="142" fill="#86efac" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Snapshot: COMPLETE</text>
+<text x="34" y="172" fill="#e2e8f0" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Provider charge attempts: 1000</text>
+<text x="34" y="202" fill="#e2e8f0" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Application records: 1002</text>
+<text x="34" y="232" fill="#e2e8f0" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Findings: 7</text>
+<text x="34" y="262" fill="#fbbf24" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">  amount_mismatch                  1</text>
+<text x="34" y="292" fill="#fbbf24" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">  duplicate_internal_credit        1</text>
+<text x="34" y="322" fill="#fbbf24" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">  missing_provider_charge          1</text>
+<text x="34" y="352" fill="#fbbf24" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">  refund_not_recorded              1</text>
+<text x="34" y="382" fill="#fbbf24" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">  subscription_status_mismatch     1</text>
+<text x="34" y="412" fill="#fbbf24" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">  unrecognized_provider_capture    1</text>
+<text x="34" y="442" fill="#fbbf24" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">  unsupported_paid_status          1</text>
+<text x="34" y="472" fill="#cbd5e1" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Adapter: offline fixture adapter (local sockets unavailable)</text>
+<text x="34" y="502" fill="#86efac" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Fixture verification: true (expected 7 categories; detected 7)</text>
+<text x="34" y="532" fill="#86efac" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Repeat run: stable (7 fingerprints)</text>
+<text x="34" y="562" fill="#cbd5e1" font-family="Menlo,Monaco,Consolas,monospace" font-size="16" xml:space="preserve">Reports: /tmp/payment-reconciliation-showcase</text>
+</svg>

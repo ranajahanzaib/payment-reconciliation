@@ -1,69 +1,85 @@
 # Payment Reconciliation
 
-Find payment records that disagree between an application and its payment provider. For example, the provider may report a captured $99 payment while the application has no successful payment record. This project compares typed application records with a separately served provider simulator and produces evidence-backed findings. It never changes financial data.
+Compare application payment records with provider records to find mismatches, missing charges, duplicate credits, and other reconciliation issues. The Go CLI produces JSON, CSV, and HTML reports without changing financial data.
 
-## What it does
+![A genuine demo run showing complete snapshot coverage, seven verified finding categories, and stable fingerprints](docs/screenshots/overview.svg)
 
-The repository contains a Go reconciliation core, deterministic 1,000-charge provider simulator, account-scoped paginated HTTP API, HTTP collection adapter, offline demo path, and JSON/CSV/HTML reports. Money is stored in integer minor units. Stable provider references are only compared inside their configured account. Incomplete imports suppress definitive “missing” findings.
+The demo processes 1,000 provider charge attempts against 1,002 application records. It checks the resulting findings against an independent fixture manifest and repeats evaluation to verify stable fingerprints. The screenshot shows captured output from an actual run; this environment did not permit loopback TCP, so the command selected its documented offline fixture adapter.
 
-This is a local prototype. PostgreSQL persistence and migrations, historical run storage, database-backed integration tests, and a production-grade multi-user security model are outside its current scope. Review actions are recorded in a local JSONL audit log. Refund and subscription mismatch rules are implemented in the domain evaluator.
+## Features
+
+- Account-scoped payment matching using exact provider references.
+- Evidence-backed findings for amount and status mismatches, missing or unrecognized charges, duplicate internal credits, refunds, and subscriptions.
+- Incomplete-snapshot safeguards that avoid definitive missing-record findings when provider collection is incomplete.
+- A deterministic provider simulator with authenticated, paginated HTTP endpoints.
+- JSON, CSV, and HTML reports, plus a small local report dashboard and review-action audit log.
+- Integer minor-unit money values and stable finding fingerprints.
 
 ## Quick start
 
-Requires Go 1.23 or newer. No external credentials or services are needed for the local demo.
+Requires Go 1.23 or newer. The local demo needs no external credentials or services.
 
 ```sh
-make test
+go test ./...
 make demo
 ```
 
-The demo writes `artifacts/demo/report.json`, `report.csv`, `report.html`, and `verification.json`. It generates exactly 1,000 provider charge attempts, executes the matching engine, checks output against `fixtures/demo/expected.json`, and runs the same evaluation twice to check stable finding fingerprints. If local TCP sockets are available it collects through the HTTP simulator; otherwise it uses the offline fixture adapter and prints which adapter ran.
+The demo writes `artifacts/demo/report.json`, `report.csv`, `report.html`, and `verification.json`. It normally collects provider records from the HTTP simulator over loopback; if local sockets are unavailable, it reports that and uses its offline fixture adapter. To keep generated reports elsewhere, run `go run ./cmd/payment-reconciliation demo --out /tmp/reconciliation-demo`.
 
-Start the provider simulator independently:
+## Run the report dashboard
+
+After generating a report, start the local report dashboard:
+
+```sh
+make serve
+```
+
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). The page shows coverage and findings, supports a high-severity filter, and links to the JSON report. The service also exposes `/healthz`, `/api/summary`, `/api/findings`, `/api/runs`, and `/api/reports/latest.json`. Review actions are available through `POST /api/findings/{fingerprint}/review` with an `acknowledged`, `investigating`, or `resolved` status and a required note. They append to a local JSONL audit log.
+
+To use another address or report file, set `HTTP_ADDR` or `REPORT_PATH`. See [.env.example](.env.example) for the local settings reference.
+
+## Run the provider simulator
+
+The simulator requires a bearer key for the demo account:
 
 ```sh
 export PROVIDER_API_KEY="$(openssl rand -hex 32)"
 make provider-sim
 ```
 
-The health endpoint is `http://127.0.0.1:8081/healthz`. To fetch demo charges, send the account and bearer token: `curl -H "Authorization: Bearer $PROVIDER_API_KEY" 'http://127.0.0.1:8081/v1/charges?account_id=acct-demo'`. The simulator refuses to start without `PROVIDER_API_KEY`.
+In another terminal, check its health and fetch a page of charges:
 
-The simulator supports collection and individual-record `GET /v1/charges`, `/v1/refunds`, and `/v1/subscriptions` routes, `account_id`, RFC3339 `created_since`/`updated_since`, `page`, and `page_size` query parameters (maximum 500), deterministic ordering, and account-scoped bearer-key authentication. `PROVIDER_API_KEY` and `PROVIDER_ADDR` configure it. The demo also reads `PROVIDER_PAGE_SIZE`, `PROVIDER_REQUEST_TIMEOUT`, `PROVIDER_MAX_RETRIES`, and `RECONCILIATION_GRACE_PERIOD`.
+```sh
+curl http://127.0.0.1:8081/healthz
+curl -H "Authorization: Bearer $PROVIDER_API_KEY" \
+  'http://127.0.0.1:8081/v1/charges?account_id=acct-demo&page=1&page_size=100'
+```
 
-After running the demo, start the local API/dashboard with `make serve`, then open [http://127.0.0.1:8080](http://127.0.0.1:8080). It reads `artifacts/demo/report.json` (override with `REPORT_PATH`) and serves summary, finding filters, the latest report, and local review actions. The run-history endpoint reflects only the latest report.
+The simulator also provides `/v1/refunds` and `/v1/subscriptions`, with collection and individual-record routes, account scoping, deterministic ordering, and pagination up to 500 records per page. Configure its listen address with `PROVIDER_ADDR`.
 
-## Finding behavior
+## Reports and finding rules
 
-- `amount_mismatch`: exact absolute difference in minor units for a successful provider capture.
-- `unsupported_paid_status`: application success with a matched provider state other than succeeded.
-- `provider_charge_not_recorded`: provider capture matched to an application payment that is not successful.
-- `missing_provider_charge`: successful application payment absent from a complete provider snapshot.
-- `unrecognized_provider_capture`: captured provider charge without a matching application payment.
-- `duplicate_internal_credit`: multiple application records use one account-scoped provider payment reference.
-- `ambiguous_provider_match` and `potential_duplicate_provider_capture`: multiple provider charges share the same account and payment reference; duplicate captures remain explicitly uncertain.
-- `account_ownership_unverified`: account-to-tenant ownership is absent or conflicts, so the engine refuses to compare those records.
-- `refund_not_recorded`, `refund_missing_provider`, and `refund_amount_mismatch`: compare successful refund records while preserving partial-refund amounts.
-- `subscription_status_mismatch`: emitted only after the configured evaluator grace period; it does not infer entitlement correctness.
+The demo fixture exercises a failed provider attempt, an amount mismatch, a missing provider charge, a duplicate internal credit, an unrecognized capture, an account-scoped reference collision, an unrecorded refund, and a stale subscription status. `fixtures/demo/expected.json` is the expected category manifest. The generated verification report records expected and detected counts.
 
-Duplicate webhook deliveries are not represented as money movements. Currency values are never aggregated across currencies. Findings are deterministic and have stable fingerprints for unchanged inputs. Matching uses exact provider payment references within the account and requires explicit account-to-tenant ownership mapping. Recent missing or not-yet-synchronized payments are held during the configured grace period.
+See [the reconciliation rules](docs/reconciliation-rules.md), [report schema](docs/report-schema.md), and [demo details](docs/demo.md) for more. Additional evidence:
 
-## Architecture and limits
+| Demonstration                                 | What it shows                                                          |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| [CLI overview](docs/screenshots/overview.svg) | Real demo output, verification counts, and stable finding fingerprints |
 
-`internal/provider` owns provider-side fixture records and HTTP endpoints. `internal/reconcile` contains typed records and pure evaluation logic, with no HTTP or persistence dependency. `cmd/payment-reconciliation` collects a normalized snapshot, evaluates it, and exports reports. This process separation ensures the evaluator consumes adapter output instead of querying simulator records directly.
+## Architecture and limitations
 
-The simulator is in-memory and resets on restart. There is no PostgreSQL persistence in this version. The review endpoint appends local JSONL audit entries and assumes a trusted loopback operator; it is not suitable for exposure to an untrusted network. The result does not establish bank settlement, payout completion, or general-ledger correctness. The HTTP adapter has bounded retries but lacks jitter and durable resume cursors. Historical run storage and multi-user review authorization are not implemented.
+`internal/provider` owns provider-side fixture records and HTTP endpoints. `internal/reconcile` contains typed records and pure evaluation logic, with no HTTP or persistence dependency. The command collects a normalized provider snapshot, evaluates it against application records, and writes reports. Read more in [the architecture overview](docs/architecture.md).
+
+This is a local prototype. The provider simulator is in-memory and resets on restart; PostgreSQL persistence, migrations, historical run storage, and a production multi-user security model are not implemented. The dashboard and review endpoint are intended for a trusted loopback operator, not exposure to an untrusted network. Findings do not establish bank settlement, payout completion, or general-ledger correctness.
 
 ## Development
 
 ```sh
 make test       # unit and handler tests
 make race       # race detector
-make build
-make demo
+make build      # compile the CLI
+make demo       # generate and verify demonstration reports
 ```
 
-The demo fixture includes a failed provider attempt, amount mismatch, missing provider payment, duplicate internal credit, orphan capture, overlapping textual references across accounts, a missing application refund, and a stale subscription status mismatch. `fixtures/demo/expected.json` is an independent category manifest. The demo writes `verification.json` and fails if detected counts differ.
-
-## License
-
-MIT; see [LICENSE](LICENSE).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance. Licensed under MIT; see [LICENSE](LICENSE).
